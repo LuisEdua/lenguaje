@@ -20,47 +20,46 @@ GRAMMAR = {
     'expression': [['IDENTIFIER'], ['NUMBER'], ['STRING'], ['expression', 'OPERATOR', 'expression']]
 }
 
-def analizar_codigo(codigo):
-    tokens = []
-    while codigo:
-        match = None
-        for token_type, pattern in TOKENS:
-            regex = re.compile(pattern)
-            match = regex.match(codigo)
-            if match:
-                value = match.group(0)
-                if token_type != 'WHITESPACE':
-                    tokens.append((token_type, value))
-                codigo = codigo[match.end():]
-                break
-        if not match:
-            sys.stderr.write('Error: Invalid character\n')
-            sys.exit(1)
-    return tokens
+def tokenizar(codigo):
+    lineas = codigo.split('\n')
+    token_list = []
+    for i, linea in enumerate(lineas):
+        token_list_linea = []
+        palabras = linea.split(' ')
+        for palabra in palabras:
+            if palabra in TOKENS:
+                token_list_linea.append(palabra)
+        if token_list_linea:
+            token_list.append((i, token_list_linea))
+    return token_list
 
-def validar_tokens(tokens):
+def analizar_codigo(codigo):
+    return tokenizar(codigo)
+
+def validar_tokens(token_lines):
     stack = [['program']]
-    for i, (token_type, value) in enumerate(tokens):
-        while True:
-            if not stack:
-                return False, i
-            top = stack[-1]
-            if isinstance(top, list):
-                if not top:
-                    stack.pop()
-                    continue
-                next_symbol = top[0]
-                if next_symbol in GRAMMAR:
-                    stack.append(GRAMMAR[next_symbol].pop(0))
-                elif next_symbol == token_type:
-                    top.pop(0)
-                    break
+    line_number = 0
+    for line_number, tokens in token_lines:
+        for token_type, value in tokens:
+            while True:
+                if not stack:
+                    return False, line_number
+                top = stack[-1]
+                if isinstance(top, list):
+                    if not top:
+                        stack.pop()
+                        continue
+                    next_symbol = top[0]
+                    if next_symbol in GRAMMAR:
+                        stack.append(GRAMMAR[next_symbol].pop(0))
+                    elif next_symbol == token_type:
+                        top.pop(0)
+                        break
+                    else:
+                        return False, line_number
                 else:
-                    return False, i
-            else:
-                stack.pop()
-    return not stack, i   
-         
+                    stack.pop()
+    return not stack, line_number
 
 if len(sys.argv) != 2:
     print("Use: zaphyr <archivo.zph>")
@@ -69,10 +68,10 @@ else:
     ruta_archivo = sys.argv[1]
     with open(ruta_archivo, 'r') as archivo:
         codigo = archivo.read()
-        tokens = analizar_codigo(codigo)
-        valido, posicion = validar_tokens(tokens)
+        token_lines = analizar_codigo(codigo)
+        valido, line_number = validar_tokens(token_lines)
         if valido:
             print("El código es válido.")
         else:
-            print(f"El código no es válido. Error en el token {posicion}.")
+            print(f"El código no es válido. Error en la línea {line_number + 1}.")
             sys.exit(1)
