@@ -40,10 +40,10 @@ def analizar_codigo(codigo):
 
 def validar_tokens(tokens):
     stack = [['program']]
-    for token_type, value in tokens:
+    for i, (token_type, value) in enumerate(tokens):
         while True:
             if not stack:
-                return False
+                return False, i
             top = stack[-1]
             if isinstance(top, list):
                 if not top:
@@ -56,10 +56,11 @@ def validar_tokens(tokens):
                     top.pop(0)
                     break
                 else:
-                    return False
+                    return False, i
             else:
                 stack.pop()
-    return not stack
+    return not stack, i   
+         
 
 if len(sys.argv) != 2:
     print("Use: zaphyr <archivo.zph>")
@@ -69,8 +70,9 @@ else:
     with open(ruta_archivo, 'r') as archivo:
         codigo = archivo.read()
         tokens = analizar_codigo(codigo)
-        if validar_tokens(tokens):
+        valido, posicion = validar_tokens(tokens)
+        if valido:
             print("El código es válido.")
         else:
-            print("El código no es válido.")
+            print(f"El código no es válido. Error en el token {posicion}.")
             sys.exit(1)
