@@ -1,0 +1,10 @@
+class main{
+    func main() {
+        a = 0
+        print("Hola")
+        sqrt(2)
+        if(a == 0) {
+            print("Hola")
+        }
+    }
+}

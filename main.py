@@ -6,8 +6,8 @@ grammar = """
 
 ?program:class_declaration | class_main
 
-?class_main: "class" "main" "{" class_body "}"
-?class_declaration: "class" IDENTIFIER "{" class_body "}"
+?class_main: "class" "main" "{" class_body+ "}"
+?class_declaration: "class" IDENTIFIER "{" class_body+ "}"
 
 IDENTIFIER: LETTER+
 
@@ -15,8 +15,8 @@ class_body: var_declaration
             | func_def
             | func_main
 
-func_def: "func" IDENTIFIER "{" body "}"
-func_main: "func" "main" "{" body "}"
+func_def: "func" IDENTIFIER "("params")" "{" body+ "}"
+func_main: "func" "main" "(" ")" "{" body+ "}"
 
 body: var_declaration
     | ciclo
@@ -25,15 +25,16 @@ body: var_declaration
     | in
     | sqrt
 
-
+params: IDENTIFIER ("," IDENTIFIER)*
 print: "print" "(" STRING ")" | "println" "(" STRING ")"
 in: "in" ">>" IDENTIFIER
-sqrt: "sqrt" "(" NUM ")" | "sqrt" "(" NUM ")"
-ciclo: "while" "(" condition ")" "{" body "}" | "do" "{" body "}" "while" "(" condition ")" | "for" IDENTIFIER "range""("IDENTIFIER")""{"body"}"
-condicional: "if" "(" condition ")" "{" body "}" ("elsif" "(" condition ")" "{" body "}")* ("else" "{" body "}")? | "switch""("IDENTIFIER")""{"switch_body"}"
-condition: IDENTIFIER "==" IDENTIFIER | IDENTIFIER "!=" IDENTIFIER | IDENTIFIER ">" IDENTIFIER | IDENTIFIER "<" IDENTIFIER | IDENTIFIER ">=" IDENTIFIER | IDENTIFIER "<=" IDENTIFIER
+sqrt: "sqrt" "(" NUM ")" | "sqrt" "(" IDENTIFIER ")"
+ciclo: "while" "(" condition ")" "{" body+ "}" | "do" "{" body+ "}" "while" "(" condition ")" | "for" IDENTIFIER "range""("IDENTIFIER")""{"body+"}"
+data: IDENTIFIER | NUM | STRING | BOOLEAN
+condicional: "if" "(" condition ")" "{" body* "}" ("elsif" "(" condition ")" "{" body+ "}")* ("else" "{" body+ "}")? | "switch""("IDENTIFIER")""{"switch_body"}"
+condition: IDENTIFIER "==" data | IDENTIFIER "!=" data | IDENTIFIER ">" data | IDENTIFIER "<" data | IDENTIFIER ">=" data | IDENTIFIER "<=" data
 var_declaration: (IDENTIFIER | ",")+ "=" (NUM | STRING | BOOLEAN | ",")+
-switch_body: "case" "==" (NUM | STRING) "{"body "}" | "default" "{" "exit" "}"
+switch_body: "case" "==" (NUM | STRING) "{" body+ "}" | "default" "{" "exit" "}"
 STRING: /"(\\"|[^"])*"/
 DIGIT: "0".."9"
 POINT: "."
